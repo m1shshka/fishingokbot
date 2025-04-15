@@ -182,7 +182,8 @@ def parse_order(text, selected_product):
             errors.append("Некорректный телефон")
 
     if errors:
-        raise ValueError(f"🚫 Не заполнены или некорректны поля:\n{'\n'.join(errors)}")
+        error_message = "🚫 Не заполнены или некорректны поля:\n" + "\n".join(errors)
+        raise ValueError(error_message)
 
     return {
         "name": result["name"],
