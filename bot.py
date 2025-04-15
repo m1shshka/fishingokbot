@@ -1,9 +1,8 @@
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
-import re
 
-# Токен бота и ID администратора
+# Токен бота
 TOKEN = os.getenv("TELEGRAM_TOKEN", "7218177880:AAFUJtHajmMhSDTpHjrsVD8-tcejC3oZgkM")
 ADMIN_CHAT_ID = "982825858"  # ID чата администратора
 CONSULTANT_CONTACTS = "TG: @pjvjcx\n📞 Телефон: 8 950 792-01-70"
@@ -212,11 +211,11 @@ def start(update, context):
     chat_id = update.message.chat.id
     user_state[chat_id] = {}
     welcome_text = f"Приветствую, {update.message.from_user.first_name}! 🎣\nЯ помогу подобрать снасти для рыбалки.\n\nВыберите интересующий раздел:"
-    update.message.reply_text(welcome_text, reply_markup=menus["main"].reply_markup)
+    update.message.reply_text(welcome_text, reply_markup=menus["main"]["reply_markup"])
 
 def handle_menu_navigation(chat_id, menu_type, context):
     user_state[chat_id] = {"currentMenu": menu_type}
-    context.bot.send_message(chat_id=chat_id, text="🐟 Выберите рыбу:", reply_markup=menus[menu_type].reply_markup)
+    context.bot.send_message(chat_id=chat_id, text="🐟 Выберите рыбу:", reply_markup=menus[menu_type]["reply_markup"])
 
 def handle_back_navigation(update, context):
     chat_id = update.message.chat.id
@@ -224,11 +223,11 @@ def handle_back_navigation(update, context):
     
     if "currentFish" in state:
         category = state["currentCategory"]
-        context.bot.send_message(chat_id=chat_id, text="🐟 Выберите рыбу:", reply_markup=menus[category].reply_markup)
+        context.bot.send_message(chat_id=chat_id, text="🐟 Выберите рыбу:", reply_markup=menus[category]["reply_markup"])
         del state["currentFish"]
         del state["currentCategory"]
     else:
-        context.bot.send_message(chat_id=chat_id, text="🏠 Главное меню:", reply_markup=menus["main"].reply_markup)
+        context.bot.send_message(chat_id=chat_id, text="🏠 Главное меню:", reply_markup=menus["main"]["reply_markup"])
     if chat_id in user_state:
         del user_state[chat_id]
 
@@ -236,7 +235,7 @@ def show_products(chat_id, category, fish, context):
     fish_key = f"🐟 {fish}"
     fish_data_category = fish_data[category]
     if fish_key not in fish_data_category:
-        context.bot.send_message(chat_id=chat_id, text="🚫 Рыба не найдена.", reply_markup=menus["main"].reply_markup)
+        context.bot.send_message(chat_id=chat_id, text="🚫 Рыба не найдена.", reply_markup=menus["main"]["reply_markup"])
         return
     products = fish_data_category[fish_key]["products"]
     product_list = "\n\n".join(product["description"] for product in products.values())
@@ -354,7 +353,7 @@ def handle_message(update, context):
             context.bot.send_message(
                 chat_id=chat_id,
                 text=f"✅ Заказ принят!\n🎣 {order_data['product']}\n🔢 Количество: {order_data['quantity']}\n📞 С вами свяжется менеджер.",
-                reply_markup=menus["main"].reply_markup
+                reply_markup=menus["main"]["reply_markup"]
             )
             del user_state[chat_id]
         except ValueError as e:
@@ -366,16 +365,20 @@ def main():
     updater = Updater(token=TOKEN, use_context=True)
     dp = updater.dispatcher
 
+    # Регистрация обработчиков
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
     # Настройка вебхука
     WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://fishingokbot.onrender.com/")
-    if "your-render-app" in WEBHOOK_URL:
-        raise ValueError("WEBHOOK_URL не настроен! Укажи правильный URL в переменных окружения.")
     PORT = int(os.environ.get("PORT", 10000))
-    updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN,
-                          webhook_url=WEBHOOK_URL + TOKEN)
+    updater.start_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url=WEBHOOK_URL + TOKEN
+    )
     updater.idle()
+
+if __name__ == "__main__":
+    main()
