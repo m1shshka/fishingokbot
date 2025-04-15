@@ -361,6 +361,7 @@ def handle_message(update, context):
             context.bot.send_message(chat_id=chat_id, text=str(e))
 
 # Основная функция
+# Основная функция
 def main():
     updater = Updater(token=TOKEN, use_context=True)
     dp = updater.dispatcher
@@ -368,9 +369,13 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    # Временно переключаем на polling для проверки
-    updater.start_polling()
+    # Настройка вебхука
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://fishingokbot.onrender.com/")
+    if "your-render-app" in WEBHOOK_URL:
+        raise ValueError("WEBHOOK_URL не настроен! Укажи правильный URL в переменных окружения.")
+    PORT = int(os.environ.get("PORT", 10000))
+    updater.start_webhook(listen="0.0.0.0",
+                          port=PORT,
+                          url_path=TOKEN,
+                          webhook_url=WEBHOOK_URL + TOKEN)
     updater.idle()
-
-if __name__ == "__main__":
-    main()
