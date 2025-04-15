@@ -205,7 +205,9 @@ def notify_admin(context, order_data, username):
         f"🔢 Количество: {order_data['quantity']}\n"
         f"🆔 Telegram: {username_text}"
     )
+    print(f"Sending message to admin (ID: {ADMIN_CHAT_ID}): {message}")  # Отладка
     context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=message)
+    print("Message sent to admin.")  # Отладка
 
 # Обработчики команд
 def start(update, context):
@@ -347,17 +349,23 @@ def handle_message(update, context):
     if "selectedProduct" in state:
         try:
             clean_product_name = state["selectedProduct"].replace("🎣 ", "").replace("🛠️ ", "")
+            print(f"Parsing order for product: {clean_product_name}, text: {text}")  # Отладка
             order_data = parse_order(text, clean_product_name)
+            print(f"Order parsed successfully: {order_data}")  # Отладка
             order_data["chat_id"] = chat_id
             order_data["username"] = update.message.from_user.username
+            print("Notifying admin...")  # Отладка
             notify_admin(context, order_data, update.message.from_user.username)
+            print("Sending confirmation to user...")  # Отладка
             context.bot.send_message(
                 chat_id=chat_id,
                 text=f"✅ Заказ принят!\n🎣 {order_data['product']}\n🔢 Количество: {order_data['quantity']}\n📞 С вами свяжется менеджер.",
                 reply_markup=menus["main"]["reply_markup"]
             )
+            print("Confirmation sent to user.")  # Отладка
             del user_state[chat_id]
         except ValueError as e:
+            print(f"Error in order parsing: {e}")  # Отладка
             context.bot.send_message(chat_id=chat_id, text=str(e))
 
 # Основная функция
