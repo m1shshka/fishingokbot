@@ -368,13 +368,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    # Настройка вебхука
-    WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://your-render-app.onrender.com/")
-    PORT = int(os.environ.get("PORT", 10000))
-    updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN,
-                          webhook_url=WEBHOOK_URL + TOKEN)
+    # Временно переключаем на polling для проверки
+    updater.start_polling()
     updater.idle()
 
 if __name__ == "__main__":
