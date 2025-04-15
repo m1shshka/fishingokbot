@@ -58,7 +58,7 @@ def main():
 
     # Настройка вебхука
     WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://your-render-app.onrender.com/")
-    PORT = int(os.environ.get("PORT", 5000))
+    PORT = int(os.environ.get("PORT", 10000))
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
                           url_path=TOKEN,
