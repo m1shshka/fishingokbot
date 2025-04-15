@@ -1,70 +1,54 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
-import json
 
-# Токен бота и другие настройки
+# РўРѕРєРµРЅ Р±РѕС‚Р° Рё ID Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
 TOKEN = os.getenv("TELEGRAM_TOKEN", "7218177880:AAFUJtHajmMhSDTpHjrsVD8-tcejC3oZgkM")
-ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")  # ID чата администратора
-WEBHOOK_URL = "https://your-render-app.onrender.com/"  # Замени на URL от Render после создания
+ADMIN_CHAT_ID = "982825858"  # ID С‡Р°С‚Р° Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
 
-# Настройка Google Таблиц
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
-sheet = client.open("Snasti").sheet1  # Укажи точное название своей таблицы, например "Snasti"
-
-# Функция для сохранения заказа в таблицу
-def save_order(order_data):
-    sheet.append_row([order_data["client"], order_data["item"], order_data["quantity"]])
-
-# Функция для уведомления администратора
-def notify_admin(update, context, order_data):
-    message = f"Новый заказ!\nКлиент: {order_data['client']}\nТовар: {order_data['item']}\nКоличество: {order_data['quantity']}"
-    context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=message)
-
-# Команда /start
+# РљРѕРјР°РЅРґР° /start
 def start(update, context):
-    keyboard = [[telegram.KeyboardButton("?? Хищная рыба")],
-                [telegram.KeyboardButton("?? Мирная рыба")]]
+    keyboard = [[telegram.KeyboardButton("рџЋЈ РҐРёС‰РЅР°СЏ СЂС‹Р±Р°")],
+                [telegram.KeyboardButton("рџЋЈ РњРёСЂРЅР°СЏ СЂС‹Р±Р°")]]
     reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    update.message.reply_text("Привет! Это бот для покупки рыболовных товаров. Выбери категорию:", reply_markup=reply_markup)
+    update.message.reply_text("РџСЂРёРІРµС‚! Р­С‚Рѕ Р±РѕС‚ РґР»СЏ РїРѕРєСѓРїРєРё СЂС‹Р±РѕР»РѕРІРЅС‹С… С‚РѕРІР°СЂРѕРІ. Р’С‹Р±РµСЂРё РєР°С‚РµРіРѕСЂРёСЋ:", reply_markup=reply_markup)
 
-# Обработка кнопок
+# РћР±СЂР°Р±РѕС‚РєР° СЃРѕРѕР±С‰РµРЅРёР№ Рё РєРЅРѕРїРѕРє
 def handle_message(update, context):
     text = update.message.text
-    if text == "?? Хищная рыба":
-        keyboard = [[telegram.KeyboardButton("?? Судак")],
-                    [telegram.KeyboardButton("?? Щука")],
-                    [telegram.KeyboardButton("?? Окунь")],
-                    [telegram.KeyboardButton("?? Назад")]]
+    if text == "рџЋЈ РҐРёС‰РЅР°СЏ СЂС‹Р±Р°":
+        keyboard = [[telegram.KeyboardButton("рџђџ РЎСѓРґР°Рє")],
+                    [telegram.KeyboardButton("рџђџ Р©СѓРєР°")],
+                    [telegram.KeyboardButton("рџђџ РћРєСѓРЅСЊ")],
+                    [telegram.KeyboardButton("в¬…пёЏ РќР°Р·Р°Рґ")]]
         reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        update.message.reply_text("?? Выберите рыбу:", reply_markup=reply_markup)
-    elif text == "?? Мирная рыба":
-        keyboard = [[telegram.KeyboardButton("?? Карась")],
-                    [telegram.KeyboardButton("?? Карп")],
-                    [telegram.KeyboardButton("?? Назад")]]
+        update.message.reply_text("рџђџ Р’С‹Р±РµСЂРёС‚Рµ СЂС‹Р±Сѓ:", reply_markup=reply_markup)
+    elif text == "рџЋЈ РњРёСЂРЅР°СЏ СЂС‹Р±Р°":
+        keyboard = [[telegram.KeyboardButton("рџђџ РљР°СЂР°СЃСЊ")],
+                    [telegram.KeyboardButton("рџђџ РљР°СЂРї")],
+                    [telegram.KeyboardButton("в¬…пёЏ РќР°Р·Р°Рґ")]]
         reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        update.message.reply_text("?? Выберите рыбу:", reply_markup=reply_markup)
-    elif text == "?? Назад":
-        keyboard = [[telegram.KeyboardButton("?? Хищная рыба")],
-                    [telegram.KeyboardButton("?? Мирная рыба")]]
+        update.message.reply_text("рџђџ Р’С‹Р±РµСЂРёС‚Рµ СЂС‹Р±Сѓ:", reply_markup=reply_markup)
+    elif text == "в¬…пёЏ РќР°Р·Р°Рґ":
+        keyboard = [[telegram.KeyboardButton("рџЋЈ РҐРёС‰РЅР°СЏ СЂС‹Р±Р°")],
+                    [telegram.KeyboardButton("рџЋЈ РњРёСЂРЅР°СЏ СЂС‹Р±Р°")]]
         reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        update.message.reply_text("Выбери категорию:", reply_markup=reply_markup)
-    elif text in ["?? Судак", "?? Щука", "?? Окунь", "?? Карась", "?? Карп"]:
+        update.message.reply_text("Р’С‹Р±РµСЂРё РєР°С‚РµРіРѕСЂРёСЋ:", reply_markup=reply_markup)
+    elif text in ["рџђџ РЎСѓРґР°Рє", "рџђџ Р©СѓРєР°", "рџђџ РћРєСѓРЅСЊ", "рџђџ РљР°СЂР°СЃСЊ", "рџђџ РљР°СЂРї"]:
         order_data = {
             "client": update.message.from_user.first_name,
             "item": text,
-            "quantity": 1  # Можно добавить выбор количества
+            "quantity": 1  # РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕРєР° С„РёРєСЃРёСЂРѕРІР°РЅРЅРѕРµ
         }
-        save_order(order_data)
-        notify_admin(update, context, order_data)
-        update.message.reply_text(f"Заказ на {text} оформлен! Спасибо!")
+        notify_admin(context, order_data)
+        update.message.reply_text(f"Р—Р°РєР°Р· РЅР° {text} РѕС„РѕСЂРјР»РµРЅ! РЎРїР°СЃРёР±Рѕ!")
 
-# Основная функция
+# РЈРІРµРґРѕРјР»РµРЅРёРµ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
+def notify_admin(context, order_data):
+    message = f"РќРѕРІС‹Р№ Р·Р°РєР°Р·!\nРљР»РёРµРЅС‚: {order_data['client']}\nРўРѕРІР°СЂ: {order_data['item']}\nРљРѕР»РёС‡РµСЃС‚РІРѕ: {order_data['quantity']}"
+    context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=message)
+
+# РћСЃРЅРѕРІРЅР°СЏ С„СѓРЅРєС†РёСЏ
 def main():
     updater = Updater(token=TOKEN, use_context=True)
     dp = updater.dispatcher
@@ -72,7 +56,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    # Настройка вебхука
+    # РќР°СЃС‚СЂРѕР№РєР° РІРµР±С…СѓРєР°
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://your-render-app.onrender.com/")
     PORT = int(os.environ.get("PORT", 5000))
     updater.start_webhook(listen="0.0.0.0",
                           port=PORT,
